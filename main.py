@@ -1,17 +1,22 @@
 from fastmcp import FastMCP
 import sqlite3
 import os
-DB_PATH=os.path.join(os.path.dirname(__file__),"notes.db")
+# DB_PATH=os.path.join(os.path.dirname(__file__),"notes.db")
+DB_PATH = os.environ.get("NOTES_DB_PATH", "/tmp/notes.db")
 connection=sqlite3.connect(DB_PATH,check_same_thread=False)
 
 
 
 mcp=FastMCP(name="notes server")
 def init_db():
-    try:
-        connection.execute("CREATE TABLE notes (title TEXT, description TEXT)")
-    except sqlite3.OperationalError:
-        pass  # Table already exists
+    connection.execute(
+        """CREATE TABLE IF NOT EXISTS notes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT,
+            description TEXT
+        )"""
+    )
+    connection.commit()
 
 init_db()
 
@@ -60,5 +65,4 @@ def DELETE_notes(id:str):
 
 
 if __name__=="__main__":
-    init_db()
     mcp.run()
